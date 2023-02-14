@@ -92,7 +92,7 @@ public static class IResultExtensions {
     public static IResult<TOutput> Map<TInput, TOutput>(this IResult<TInput> input, Func<TInput, TOutput> func) =>
         input.IsError ? Result.Failure<TOutput>(input.Error) : Result.Success(func(input.Value));
 
-    public static EnumerableResult<T> AsEnumerable<T>(this IResult<IEnumerable<T>> input) => (EnumerableResult<T>)input;
+    public static IEnumerableResult<T> AsEnumerable<T>(this IResult<IEnumerable<T>> input) => (EnumerableResult<T>)input;
 
     public static IResult<T> Some<T>(this IResult<T> input, Func<T, T> func) =>
         input.IsSuccess ? Result.Success(func(input.Value)) : input;
