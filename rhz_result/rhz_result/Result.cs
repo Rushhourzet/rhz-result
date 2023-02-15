@@ -2,34 +2,62 @@
 using System.Collections;
 
 namespace rhz_result;
+
+/// <summary>
+/// object can go into Error State
+/// </summary>
 public interface IErrorable {
+
+    /// <summary>
+    /// object is not in Error State
+    /// </summary>
     public bool IsSuccess { get; }
+
+    /// <summary>
+    /// object is in Error State
+    /// </summary>
     public bool IsError { get; }
+
+    /// <summary>
+    /// the error the object can return
+    /// </summary>
     public Exception Error { get; }
 }
+
+/// <summary>
+/// generic Value wrapper
+/// </summary>
+/// <typeparam name="T">Type of Value</typeparam>
 public interface IValue<T> {
+    /// <summary>
+    /// gets the wrapped Value
+    /// </summary>
     public T Value { get; }
 }
-public interface IResult<T> : IErrorable, IValue<T> { }
 
+/// <summary>
+/// Result wrapper interface that either holds a Value or an Error, depending on Error State
+/// </summary>
+/// <typeparam name="T"></typeparam>
+public interface IResult<T> : IErrorable, IValue<T> { }
 public readonly struct Result<TValue> : IResult<TValue> {
     private readonly TValue? value;
     private readonly Exception? error;
     private readonly bool errorState;
 
-    public Result(TValue value) {
+    internal Result(TValue value) {
         this.value = value;
         this.error = null;
         this.errorState = false;
     }
 
-    public Result(Exception error) {
+    internal Result(Exception error) {
         this.value = default;
         this.error = error;
         this.errorState = true;
     }
 
-    public Result(string errorMessage) {
+    internal Result(string errorMessage) {
         this.value = default;
         this.error = new Exception(errorMessage);
         this.errorState = true;
@@ -48,11 +76,16 @@ public readonly struct Result<TValue> : IResult<TValue> {
         throw new InvalidOperationException($"Cannot get Value when Result is in Error State.");
     }
 }
+
+/// <summary>
+/// Represents an IResult of ReadonlyCollection of T and is a QoL wrapper to directly enumerate on IEnumerableResult without having to call result.Value
+/// </summary>
+/// <typeparam name="T">Type of Item in IReadonlyCollection</typeparam>
 public interface IEnumerableResult<T> : IReadOnlyCollection<T>, IResult<IReadOnlyCollection<T>> { }
 public readonly struct EnumerableResult<TValue> : IReadOnlyCollection<TValue> {
     private readonly Result<IReadOnlyCollection<TValue>> result;
 
-    public EnumerableResult(Result<IReadOnlyCollection<TValue>> result) {
+    internal EnumerableResult(Result<IReadOnlyCollection<TValue>> result) {
         this.result = result;
     }
 
@@ -71,15 +104,51 @@ public readonly struct EnumerableResult<TValue> : IReadOnlyCollection<TValue> {
     IEnumerator IEnumerable.GetEnumerator() => result.Value.GetEnumerator();
 }
 
+/// <summary>
+/// static Result class to create Results
+/// </summary>
 public static class Result {
+
+    /// <summary>
+    /// Creates a new IResult of T. If value is null, it will create an Error State Result
+    /// </summary>
+    /// <typeparam name="T">Type of Value</typeparam>
+    /// <param name="value">Value of Type T</param>
+    /// <returns>Result of T</returns>
     public static IResult<T> Success<T>(T value) =>
         value is not null ? new Result<T>(value) : new Result<T>(new ArgumentNullException("Value cannot be null on creation of Result"));
+
+    /// <summary>
+    /// Creates a new Error State IResult of T. If Exception is null it will default to new Exception() as Error
+    /// </summary>
+    /// <typeparam name="T">Type of Value</typeparam>
+    /// <param name="value">Value of Type T</param>
+    /// <returns>Result of T</returns>
     public static IResult<T> Failure<T>(Exception exception) =>
         exception is not null ? new Result<T>(exception) : new Result<T>(new Exception());
+
+
+    /// <summary>
+    /// Creates a new Error State IResult of T. If Exception is null it will default to new Exception() as Error
+    /// </summary>
+    /// <typeparam name="T">Type of Value</typeparam>
+    /// <param name="value">Value of Type T</param>
+    /// <returns>Result of T</returns>
     public static IResult<T> Failure<T>() => new Result<T>(new Exception());
+
+
+    /// <summary>
+    /// Creates a new Error State IResult of T. If Exception is null it will default to new Exception() as Error
+    /// </summary>
+    /// <typeparam name="T">Type of Value</typeparam>
+    /// <param name="value">Value of Type T</param>
+    /// <returns>Result of T</returns>
     public static IResult<T> Failure<T>(string message) => new Result<T>(message);
 }
 
+/// <summary>
+/// static EnumerableResult class to create EnumerableResults
+/// </summary>
 public static class EnumerableResult {
     public static IEnumerableResult<T> Success<T>(IEnumerable<T> value) => (IEnumerableResult<T>)Result.Success((IReadOnlyCollection<T>)value.ToList().AsReadOnly());
     public static IEnumerableResult<T> Success<T>(IReadOnlyCollection<T> value) => (IEnumerableResult<T>)Result.Success(value);
@@ -136,6 +205,13 @@ public static class IResultLoggingExtensions {
         return input;
     }
 }
+
 public static class IEnumerableResultExtensions {
     public static IEnumerableResult<T> Where<T>(this IEnumerableResult<T> input, Func<T, bool> func) => EnumerableResult.Success(input.Value.Where(func));
+    public static IEnumerableResult<T> Where<T>(this IResult<IEnumerable<T>> input, Func<T, bool> func) => EnumerableResult.Success(input.Value.Where(func));
+    public static IEnumerableResult<T> Where<T>(this IResult<IReadOnlyCollection<T>> input, Func<T, bool> func) => EnumerableResult.Success(input.Value.Where(func));
+
+    public static IEnumerableResult<TOutput> Select<TInput, TOutput>(this IEnumerableResult<TInput> input, Func<TInput, TOutput> func) => EnumerableResult.Success(input.Value.Select(func));
+    public static IEnumerableResult<TOutput> Select<TInput, TOutput>(this IResult<IEnumerable<TInput>> input, Func<TInput, TOutput> func) => EnumerableResult.Success(input.Value.Select(func));
+    public static IEnumerableResult<TOutput> Select<TInput, TOutput>(this IResult<IReadOnlyCollection<TInput>> input, Func<TInput, TOutput> func) => EnumerableResult.Success(input.Value.Select(func));
 }
