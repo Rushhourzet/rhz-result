@@ -25,12 +25,12 @@ public readonly struct Result<TValue> : IResult<TValue> {
         this.errorState = true;
     }
 
-    public bool IsSuccess => !errorState;
+    public bool IsOk => !errorState;
     public bool IsError => errorState;
 
     public Exception Error => IsError ? error! : throw new InvalidOperationException("Cannot get Error when Result is not in Error State");
 
-    public TValue Value => TryGetValue_ThrowExceptionOnFail(IsSuccess, value, error);
+    public TValue Value => TryGetValue_ThrowExceptionOnFail(IsOk, value, error);
 
     private static T TryGetValue_ThrowExceptionOnFail<T>(bool isSuccess, T? value, Exception? error) {
         if (isSuccess) return value!;
@@ -50,7 +50,7 @@ public static class Result {
     /// <typeparam name="T">Type of Value</typeparam>
     /// <param name="value">Value of Type T</param>
     /// <returns>Result of T</returns>
-    public static IResult<T> Success<T>(T value) =>
+    public static IResult<T> Ok<T>(T value) =>
         value is not null ? new Result<T>(value) : new Result<T>(new ArgumentNullException("Value cannot be null on creation of Result"));
 
     /// <summary>
@@ -59,7 +59,7 @@ public static class Result {
     /// <typeparam name="T">Type of Value</typeparam>
     /// <param name="value">Value of Type T</param>
     /// <returns>Result of T</returns>
-    public static IResult<T> Failure<T>(Exception exception) =>
+    public static IResult<T> Err<T>(Exception exception) =>
         exception is not null ? new Result<T>(exception) : new Result<T>(new Exception());
 
 
@@ -69,7 +69,7 @@ public static class Result {
     /// <typeparam name="T">Type of Value</typeparam>
     /// <param name="value">Value of Type T</param>
     /// <returns>Result of T</returns>
-    public static IResult<T> Failure<T>() => new Result<T>(new Exception());
+    public static IResult<T> Err<T>() => new Result<T>(new Exception());
 
 
     /// <summary>
@@ -82,22 +82,22 @@ public static class Result {
 }
 
 public static class IResultExtensions {
-    public static IResult<TOutput> Map<TInput, TOutput>(this IResult<TInput> input, Func<TInput, TOutput> func) =>
-        input.IsError ? Result.Failure<TOutput>(input.Error) : Result.Success(func(input.Value));
+    public static IResult<TOutput> Map<TInput, TOutput>(this IResult<TInput> input, Func<TInput, TOutput> fn) =>
+        input.IsError ? Result.Err<TOutput>(input.Error) : Result.Ok(fn(input.Value));
 
-    public static IEnumerableResult<T> AsEnumerable<T>(this IResult<IEnumerable<T>> input) => EnumerableResult.Success(input.Value);
-    public static IEnumerableResult<T> AsEnumerable<T>(this IResult<IReadOnlyCollection<T>> input) => EnumerableResult.Success(input.Value);
+    public static IEnumerableResult<T> AsEnumerable<T>(this IResult<IEnumerable<T>> input) => EnumerableResult.Ok(input.Value);
+    public static IEnumerableResult<T> AsEnumerable<T>(this IResult<IReadOnlyCollection<T>> input) => EnumerableResult.Ok(input.Value);
 
-    public static IResult<T> Some<T>(this IResult<T> input, Func<T, T> func) =>
-        input.IsSuccess ? Result.Success(func(input.Value)) : input;
+    public static IResult<T> Some<T>(this IResult<T> input, Func<T, T> fn) =>
+        input.IsOk ? Result.Ok(fn(input.Value)) : input;
 
     public static IResult<T> FixError<T>(this IResult<T> input, Func<T, T> func) =>
-        input.IsError ? Result.Success(func(input.Value)) : input;
+        input.IsError ? Result.Ok(func(input.Value)) : input;
 
     public static IResult<T> Handle<T>(this IResult<T> input, Action<Exception> func) {
         if (input.IsError) {
             func(input.Error);
-            return Result.Failure<T>(new HasBeenHandledException());
+            return Result.Err<T>(new HasBeenHandledException());
         }
         return input;
     }

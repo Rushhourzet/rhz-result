@@ -23,7 +23,7 @@ public interface IErrorable {
     /// <summary>
     /// object is not in Error State
     /// </summary>
-    public bool IsSuccess { get; }
+    public bool IsOk { get; }
 
     /// <summary>
     /// object is in Error State

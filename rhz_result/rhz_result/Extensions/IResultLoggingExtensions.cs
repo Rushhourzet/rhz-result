@@ -4,7 +4,7 @@ namespace rhz_result;
 
 public static class IResultLoggingExtensions {
     public static IResult<T> LogError<T>(this IResult<T> input, ILogger logger, Action<ILogger, Exception> logAction = null) {
-        if (input.IsSuccess) {
+        if (input.IsOk) {
             return input;
         }
         if (logAction is null) {
