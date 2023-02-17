@@ -30,17 +30,29 @@ public readonly struct EnumerableResult<TValue> : IReadOnlyCollection<TValue> {
 /// static EnumerableResult class to create EnumerableResults
 /// </summary>
 public static class EnumerableResult {
-    public static IEnumerableResult<T> Ok<T>(IEnumerable<T> value) => (IEnumerableResult<T>)Result.Ok((IReadOnlyCollection<T>)value.ToList().AsReadOnly());
-    public static IEnumerableResult<T> Ok<T>(IReadOnlyCollection<T> value) => (IEnumerableResult<T>)Result.Ok(value);
+    public static IResult<IReadOnlyCollection<T>> Ok<T>(IEnumerable<T> value) =>
+        Result.Ok((IReadOnlyCollection<T>)value.ToArray().AsReadOnly());
+    public static IResult<IReadOnlyCollection<T>> Ok<T>(IReadOnlyCollection<T> value) => Result.Ok(value);
+    public static IResult<IReadOnlyCollection<T>> Ok<T>(params IResult<T>[] inputs) =>
+        Result.Ok(
+            (IReadOnlyCollection<T>)inputs
+            .Where(input => input.IsOk)
+            .Select(input => input.Value)
+            .ToArray()
+            .AsReadOnly());
+    
 }
 
 
 public static class IEnumerableResultExtensions {
-    public static IEnumerableResult<T> Where<T>(this IEnumerableResult<T> input, Func<T, bool> func) => EnumerableResult.Ok(input.Value.Where(func));
-    public static IEnumerableResult<T> Where<T>(this IResult<IEnumerable<T>> input, Func<T, bool> func) => EnumerableResult.Ok(input.Value.Where(func));
-    public static IEnumerableResult<T> Where<T>(this IResult<IReadOnlyCollection<T>> input, Func<T, bool> func) => EnumerableResult.Ok(input.Value.Where(func));
+    public static IResult<IReadOnlyCollection<T>> Where<T>(this IResult<IReadOnlyCollection<T>> input, Func<T, bool> func) => EnumerableResult.Ok(input.Value.Where(func));
+    public static IResult<IReadOnlyCollection<T>> Where<T>(this IResult<IEnumerable<T>> input, Func<T, bool> func) => EnumerableResult.Ok(input.Value.Where(func));
 
-    public static IEnumerableResult<TOutput> Select<TInput, TOutput>(this IEnumerableResult<TInput> input, Func<TInput, TOutput> func) => EnumerableResult.Ok(input.Value.Select(func));
-    public static IEnumerableResult<TOutput> Select<TInput, TOutput>(this IResult<IEnumerable<TInput>> input, Func<TInput, TOutput> func) => EnumerableResult.Ok(input.Value.Select(func));
-    public static IEnumerableResult<TOutput> Select<TInput, TOutput>(this IResult<IReadOnlyCollection<TInput>> input, Func<TInput, TOutput> func) => EnumerableResult.Ok(input.Value.Select(func));
+    public static IResult<IReadOnlyCollection<TOutput>> Select<TInput, TOutput>(this IResult<IReadOnlyCollection<TInput>> input, Func<TInput, TOutput> func) => 
+        EnumerableResult.Ok(input.Value.Select(func));
+    public static IResult<IReadOnlyCollection<TOutput>> Select<TInput, TOutput>(this IResult<IEnumerable<TInput>> input, Func<TInput, TOutput> func) => 
+        EnumerableResult.Ok(input.Value.Select(func));
+
+    public static IResult<TAccumulate> Aggregate<TInput, TAccumulate>(this IResult<IReadOnlyCollection<TInput>> input, TAccumulate seed, Func<TAccumulate, TInput, TAccumulate> func) => 
+        Result.Ok(input.Value.Aggregate(seed,func));
 }

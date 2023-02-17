@@ -1,6 +1,6 @@
-﻿namespace rhz_result.Extensions;
+﻿namespace rhz_result;
 
 public static class ToIResultExtensions {
     public static IResult<T> ToResult<T>(this T value) => Result.Ok(value);
-    public static IEnumerableResult<T> ToResult<T>(this IEnumerable<T> value) => EnumerableResult.Ok(value);
+    public static IResult<IReadOnlyCollection<T>> ToResult<T>(this IEnumerable<T> value) => EnumerableResult.Ok(value);
 }

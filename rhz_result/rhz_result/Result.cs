@@ -78,21 +78,25 @@ public static class Result {
     /// <typeparam name="T">Type of Value</typeparam>
     /// <param name="value">Value of Type T</param>
     /// <returns>Result of T</returns>
-    public static IResult<T> Failure<T>(string message) => new Result<T>(message);
+    public static IResult<T> Err<T>(string message) => new Result<T>(message);
 }
 
 public static class IResultExtensions {
     public static IResult<TOutput> Map<TInput, TOutput>(this IResult<TInput> input, Func<TInput, TOutput> fn) =>
         input.IsError ? Result.Err<TOutput>(input.Error) : Result.Ok(fn(input.Value));
 
-    public static IEnumerableResult<T> AsEnumerable<T>(this IResult<IEnumerable<T>> input) => EnumerableResult.Ok(input.Value);
-    public static IEnumerableResult<T> AsEnumerable<T>(this IResult<IReadOnlyCollection<T>> input) => EnumerableResult.Ok(input.Value);
+    public static IResult<IReadOnlyCollection<T>> AsEnumerable<T>(this IResult<IEnumerable<T>> input) => EnumerableResult.Ok(input.Value);
+    public static IResult<IReadOnlyCollection<T>> AsEnumerable<T>(this IResult<IReadOnlyCollection<T>> input) => EnumerableResult.Ok(input.Value);
 
     public static IResult<T> Some<T>(this IResult<T> input, Func<T, T> fn) =>
         input.IsOk ? Result.Ok(fn(input.Value)) : input;
 
-    public static IResult<T> FixError<T>(this IResult<T> input, Func<T, T> func) =>
-        input.IsError ? Result.Ok(func(input.Value)) : input;
+    public static IResult<T> None<T>(this IResult<T> input, Func<T> func) {
+        if(input.IsError) {
+            return Result.Ok(func());
+        }
+        return input;
+    }
 
     public static IResult<T> Handle<T>(this IResult<T> input, Action<Exception> func) {
         if (input.IsError) {
