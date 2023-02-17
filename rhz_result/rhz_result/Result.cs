@@ -85,22 +85,24 @@ public static class IResultExtensions {
     public static IResult<TOutput> Map<TInput, TOutput>(this IResult<TInput> input, Func<TInput, TOutput> fn) =>
         input.IsError ? Result.Err<TOutput>(input.Error) : Result.Ok(fn(input.Value));
 
-    public static IResult<IReadOnlyCollection<T>> AsEnumerable<T>(this IResult<IEnumerable<T>> input) => EnumerableResult.Ok(input.Value);
-    public static IResult<IReadOnlyCollection<T>> AsEnumerable<T>(this IResult<IReadOnlyCollection<T>> input) => EnumerableResult.Ok(input.Value);
+    public static IResult<IEnumerable<T>> AsEnumerable<T>(this IResult<IEnumerable<T>> input) => EnumerableResult.Ok(input.Value);
 
     public static IResult<T> Some<T>(this IResult<T> input, Func<T, T> fn) =>
         input.IsOk ? Result.Ok(fn(input.Value)) : input;
 
-    public static IResult<T> None<T>(this IResult<T> input, Func<T> func) {
+    public static IResult<T> None<T>(this IResult<T> input, Func<IResult<T>> fn) {
         if(input.IsError) {
-            return Result.Ok(func());
+            return fn();
         }
         return input;
     }
 
-    public static IResult<T> Handle<T>(this IResult<T> input, Action<Exception> func) {
+    public static IResult<T> None<T>(this IResult<T> input, Func<T> fn) => None(input, () => Result.Ok(fn()));
+    public static IResult<T> None<T>(this IResult<T> input, Func<Exception> fn) => None(input, () => Result.Err<T>(fn()));
+
+    public static IResult<T> Handle<T>(this IResult<T> input, Action<Exception> fn) {
         if (input.IsError) {
-            func(input.Error);
+            fn(input.Error);
             return Result.Err<T>(new HasBeenHandledException());
         }
         return input;
