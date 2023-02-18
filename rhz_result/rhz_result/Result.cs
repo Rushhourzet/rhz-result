@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 
 namespace rhz_result;
 
@@ -62,6 +63,7 @@ public static class Result {
     public static IResult<T> Err<T>(Exception exception) =>
         exception is not null ? new Result<T>(exception) : new Result<T>(new Exception());
 
+    public static IResult<T> Err<T>(IResult<T> input) => Err<T>(input.Error);
 
     /// <summary>
     /// Creates a new Error State IResult of T. If Exception is null it will default to new Exception() as Error
@@ -115,10 +117,13 @@ public static class IResultExtensions {
     public static IResult<T> Handle<T>(this IResult<T> input, Action<Exception> fn) {
         if (input.IsError) {
             fn(input.Error);
-            return Result.Err<T>(new HasBeenHandledException());
+            return Result.Err<T>(new ResultHasBeenHandledException());
         }
         return input;
     }
+
+    public static IResult<T> Validate<T>(this IResult<T> input, Predicate<T> condition) =>
+        input.Some(value => condition(value) ? Result.Ok(value) : Result.Err<T>(new ResultValidationException<T>(value)));
 
     public static bool Deconstruct<T>(this IResult<T> input, out T? value, out Exception? error) {
         Deconstruct(input, out bool isOk, out value, out error);

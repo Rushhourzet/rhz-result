@@ -15,7 +15,7 @@ public static class IResultAsyncExtensions {
         var inputResult = await input;
         if (inputResult.IsError) {
             func(inputResult.Error);
-            return Result.Err<T>(new HasBeenHandledException());
+            return Result.Err<T>(new ResultHasBeenHandledException());
         }
         return inputResult;
     }
