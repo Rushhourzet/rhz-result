@@ -16,15 +16,13 @@ public static class IResultLoggingExtensions {
         return input;
     }
 
-    public static IResult<T> LogWarning<T>(this IResult<T> input, ILogger logger) {
-        if (input.IsError)
-            logger.LogWarning(input.Error, input.Error.Message);
+    public static IResult<T> LogOk<T>(this IResult<T> input, ILogger logger, Action<ILogger, T> logAction) {
+        if (input.IsError) {
+            return input;
+        }
+
+        logAction(logger, input.Value);
         return input;
     }
 
-    public static IResult<T> LogInformation<T>(this IResult<T> input, ILogger logger) {
-        if (input.IsError)
-            logger.LogInformation(input.Error, input.Error.Message);
-        return input;
-    }
 }

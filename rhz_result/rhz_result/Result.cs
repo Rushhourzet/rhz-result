@@ -82,13 +82,25 @@ public static class Result {
 }
 
 public static class IResultExtensions {
+
     public static IResult<TOutput> Map<TInput, TOutput>(this IResult<TInput> input, Func<TInput, TOutput> fn) =>
         input.IsError ? Result.Err<TOutput>(input.Error) : Result.Ok(fn(input.Value));
 
     public static IResult<IEnumerable<T>> AsEnumerable<T>(this IResult<IEnumerable<T>> input) => EnumerableResult.Ok(input.Value);
 
+    public static IResult<T> Some<T>(this IResult<T> input, Func<T, IResult<T>> fn) =>
+        input.IsOk ? fn(input.Value) : input;
+
     public static IResult<T> Some<T>(this IResult<T> input, Func<T, T> fn) =>
-        input.IsOk ? Result.Ok(fn(input.Value)) : input;
+        Some(input, value => Result.Ok(fn(value)));
+
+
+    public static IResult<T> None<T>(this IResult<T> input, Func<Exception, IResult<T>> fn) {
+        if (input.IsError) {
+            return fn(input.Error);
+        }
+        return input;
+    }
 
     public static IResult<T> None<T>(this IResult<T> input, Func<IResult<T>> fn) {
         if(input.IsError) {
@@ -97,8 +109,8 @@ public static class IResultExtensions {
         return input;
     }
 
-    public static IResult<T> None<T>(this IResult<T> input, Func<T> fn) => None(input, () => Result.Ok(fn()));
-    public static IResult<T> None<T>(this IResult<T> input, Func<Exception> fn) => None(input, () => Result.Err<T>(fn()));
+    public static IResult<T> None<T>(this IResult<T> input, Func<Exception, T> fn) => None(input, e => Result.Ok(fn(e)));
+    public static IResult<T> None<T>(this IResult<T> input, Func<Exception, Exception> fn) => None(input, e => Result.Err<T>(fn(e)));
 
     public static IResult<T> Handle<T>(this IResult<T> input, Action<Exception> fn) {
         if (input.IsError) {
@@ -106,5 +118,15 @@ public static class IResultExtensions {
             return Result.Err<T>(new HasBeenHandledException());
         }
         return input;
+    }
+
+    public static bool Deconstruct<T>(this IResult<T> input, out T? value, out Exception? error) {
+        Deconstruct(input, out bool isOk, out value, out error);
+        return isOk;
+    }
+    public static void Deconstruct<T>(this IResult<T> input, out bool isOk, out T? value, out Exception? error) {
+        isOk = input.IsOk;
+        value = input.IsOk ? input.Value : default;
+        error = input.IsError ? input.Error : null;
     }
 }
