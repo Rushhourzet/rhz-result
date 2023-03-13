@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections;
+using System.Data.SqlTypes;
+using System.Runtime.CompilerServices;
 
 namespace rhz_result;
 
@@ -25,6 +27,17 @@ public readonly struct Result<TValue> : IResult<TValue> {
         this.error = new Exception(errorMessage);
         this.errorState = true;
     }
+
+    public static implicit operator TValue(Result<TValue> result) => result.Value;
+    public static implicit operator Exception(Result<TValue> result) => result.Error;
+    public static implicit operator Result<TValue>(TValue value) =>
+        value is not null ? new Result<TValue>(value) : new Result<TValue>(new ArgumentNullException("Value cannot be null on creation of Result"));
+    public static implicit operator Result<TValue>(Exception exception) =>
+        exception is not null ? new Result<TValue>(exception) : new Result<TValue>(new Exception());
+
+    public static bool operator true(Result<TValue> result) => result.IsOk;
+    public static bool operator false(Result<TValue> result) => result.IsError;
+
 
     public bool IsOk => !errorState;
     public bool IsError => errorState;
@@ -105,7 +118,7 @@ public static class IResultExtensions {
     }
 
     public static IResult<T> None<T>(this IResult<T> input, Func<IResult<T>> fn) {
-        if(input.IsError) {
+        if (input.IsError) {
             return fn();
         }
         return input;

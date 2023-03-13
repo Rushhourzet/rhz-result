@@ -2,7 +2,7 @@
 
 public static class ToIResultAsyncExtensions {
     public static async Task<IResult<T>> ToResultAsync<T>(this Task<T> value) => Result.Ok(await value);
-    public static async Task<IResult<IReadOnlyCollection<T>>> ToResultAsync<T>(this Task<IEnumerable<T>> value) => EnumerableResult.Ok(await value);
+    public static async Task<IResult<IEnumerable<T>>> ToResultAsync<T>(this Task<IEnumerable<T>> value) => EnumerableResult.Ok(await value);
 }
 public static class IResultAsyncExtensions {
 
