@@ -3,7 +3,7 @@ using System.Collections;
 using System.Data.SqlTypes;
 using System.Runtime.CompilerServices;
 
-namespace rhz_result;
+namespace rhz.Result;
 
 public readonly struct Result<TValue> : IResult<TValue> {
     private readonly TValue? value;
@@ -35,6 +35,7 @@ public readonly struct Result<TValue> : IResult<TValue> {
     public static implicit operator Result<TValue>(Exception exception) =>
         exception is not null ? new Result<TValue>(exception) : new Result<TValue>(new Exception());
 
+
     public static bool operator true(Result<TValue> result) => result.IsOk;
     public static bool operator false(Result<TValue> result) => result.IsError;
 
@@ -42,7 +43,7 @@ public readonly struct Result<TValue> : IResult<TValue> {
     public bool IsOk => !errorState;
     public bool IsError => errorState;
 
-    public Exception Error => IsError ? error! : throw new InvalidOperationException("Cannot get Error when Result is not in Error State");
+    public Exception Error => IsError ? error! : throw new InvalidOperationException("Cannot get Error when Result is in Ok State");
 
     public TValue Value => TryGetValue_ThrowExceptionOnFail(IsOk, value, error);
 
@@ -76,8 +77,6 @@ public static class Result {
     public static IResult<T> Err<T>(Exception exception) =>
         exception is not null ? new Result<T>(exception) : new Result<T>(new Exception());
 
-    public static IResult<T> Err<T>(IResult<T> input) => Err<T>(input.Error);
-
     /// <summary>
     /// Creates a new Error State IResult of T. If Exception is null it will default to new Exception() as Error
     /// </summary>
@@ -101,7 +100,7 @@ public static class IResultExtensions {
     public static IResult<TOutput> Map<TInput, TOutput>(this IResult<TInput> input, Func<TInput, TOutput> fn) =>
         input.IsError ? Result.Err<TOutput>(input.Error) : Result.Ok(fn(input.Value));
 
-    public static IResult<IEnumerable<T>> AsEnumerable<T>(this IResult<IEnumerable<T>> input) => EnumerableResult.Ok(input.Value);
+    //public static IResult<IEnumerable<T>> AsEnumerable<T>(this IResult<IEnumerable<T>> input) => EnumerableResult.Ok(input.Value);
 
     public static IResult<T> Some<T>(this IResult<T> input, Func<T, IResult<T>> fn) =>
         input.IsOk ? fn(input.Value) : input;

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace rhz_result;
+namespace rhz.Result.Logging;
 
 public static class IResultLoggingExtensions {
     public static IResult<T> LogError<T>(this IResult<T> input, ILogger logger, Action<ILogger, Exception> logAction = null) {

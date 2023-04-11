@@ -1,4 +1,4 @@
-﻿namespace rhz_result;
+﻿namespace rhz.Result;
 
 
 /// <summary>

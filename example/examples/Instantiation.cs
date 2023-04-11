@@ -1,4 +1,4 @@
-﻿using rhz_result;
+﻿using rhz.Result;
 
 namespace example.examples;
 internal static class Instantiation {
@@ -10,5 +10,6 @@ internal static class Instantiation {
         var result5 = Result.Err<Person>(); //is in error state; Error = new ArgumentNullException("Value cannot be null on creation of Result")
         var result6 = Result.Err<Person>(new Exception()); //result in error state
         var result7 = Result.Err<Person>("message"); //result in error state; Error = new Exception("message")
+        Result<string> harold = "Harold";
     }
 }

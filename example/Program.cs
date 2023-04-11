@@ -1,6 +1,6 @@
 ﻿using example.examples;
 using Microsoft.Extensions.Logging;
-using rhz_result;
+using rhz.Result;
 
 internal class Program {
     internal static readonly IResult<Person> okResult = Result.Ok(new Person("Harold"));

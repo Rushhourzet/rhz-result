@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
-namespace rhz_result;
+namespace rhz.Result.EnumerableResult;
 
+//TODO: Maybe remove EnumerableResult? Keep it simple
 public readonly struct EnumerableResult<TValue> : IEnumerable<TValue> {
 
     private readonly Result<IEnumerable<TValue>> result;

@@ -1,4 +1,6 @@
-﻿using rhz_result;
+﻿using rhz.Result;
+using rhz.Result.EnumerableResult;
+using System.Security.Cryptography.X509Certificates;
 
 namespace example.examples;
 internal static class IResultIEnumerableInstantiation {
@@ -8,7 +10,7 @@ internal static class IResultIEnumerableInstantiation {
         var r3 = Result.Ok((IEnumerable<string>)new string[] { "a", "b", "c" }.AsReadOnly()); //also valid, but requires case to use ReadOnlyCollection or everything
         var r5 = EnumerableResult.Ok(new string[5]); //valid to have an empty collection
         //var r6 = EnumerableResult.Ok<Person>(null); //compiler error
-        var r7 = EnumerableResult.Ok(Result.Ok("Harold"), Result.Ok("Kumar"), Result.Err<string>("Name does not Exist")); //valid instantiation
+        var r7 = EnumerableResult.Ok(Result.Ok("Harold"), Result.Ok("Kumar"), Result.Err<string>("Name does not Exist")); //valid instantiation, will remove Errors
         //var r8 = EnumerableResult.Err(); //No EnumerableResult.Err method
         var r9 = Result.Err<IEnumerable<Person>>(); //Use Result.Err instead => reduces duplicate code in library
         var r10 = Result.Ok(new string[] { "a", "b", "c" });

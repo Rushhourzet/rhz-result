@@ -1,4 +1,4 @@
-﻿using rhz_result;
+﻿using rhz.Result;
 
 namespace example.examples;
 

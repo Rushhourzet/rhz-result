@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
-using rhz_result;
+using rhz.Result;
+using rhz.Result.Logging;
 
 namespace example.examples;
 
