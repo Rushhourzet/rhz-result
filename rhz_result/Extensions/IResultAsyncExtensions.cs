@@ -8,7 +8,7 @@ public static class IResultAsyncExtensions {
 
     public static async Task<IResult<TOutput>> Then<TInput, TOutput>(this Task<IResult<TInput>> input, Func<TInput, TOutput> func) {
         var inputResult = await input;
-        return inputResult.IsOk ?(Result.Ok(func(inputResult.Value))) : Result.Err<TOutput>(inputResult.Error);
+        return inputResult.IsOk ? Result.Ok(func(inputResult.Value)) : Result.Err<TOutput>(inputResult.Error);
     }
 
     public static async Task<IResult<T>> Handle<T>(this Task<IResult<T>> input, Action<Exception> func) {
