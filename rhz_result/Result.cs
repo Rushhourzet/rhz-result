@@ -1,4 +1,5 @@
-﻿using System;
+﻿using rhz.Fluent;
+using System;
 using System.Collections;
 using System.Data.SqlTypes;
 using System.Runtime.CompilerServices;
@@ -33,6 +34,11 @@ public readonly struct Result<TValue> : IResult<TValue> {
         value is not null ? new Result<TValue>(value) : new Result<TValue>(new ArgumentNullException("Value cannot be null on creation of Result"));
     public static implicit operator Result<TValue>(Exception exception) =>
         exception is not null ? new Result<TValue>(exception) : new Result<TValue>(new Exception());
+
+    public static implicit operator Result<TValue>(Either<TValue, Exception> either) {
+        if(either.HasFirst) return new Result<TValue>(either.First);
+        else return new Result<TValue>(either.Second);
+    }
 
 
     public static bool operator true(Result<TValue> result) => result.IsOk;

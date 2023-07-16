@@ -9,10 +9,13 @@ internal class Program {
     public static void Main(string[] args) {
 
         string companyName = "Acme";
-        Either<Person, Business> name = new(
+        Either<Person, Business> name = new Either<Person, Business>(
             companyName.Contains("Harold") ? new Person(companyName) : null,
             companyName.Contains("Acme") ? new Business(companyName) : null);
-        name.Match(
+        var henloName = name.Bind(
+            person => new Person(person.name + "Henlo"),
+            business => new Business(business.name + "Henlo"));
+        var printHenloName = henloName.Match(
             person => Console.WriteLine(person.name),
             business => Console.WriteLine(business.name));
 

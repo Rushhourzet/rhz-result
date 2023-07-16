@@ -39,16 +39,34 @@ public readonly struct Either<T1, T2> {
 
 
 public static class EitherExtension {
-    public static Either<T1Out, T2Out> Bind<T1,T2, T1Out, T2Out>(
-        this Either<T1, T2> either, 
-        Func<T1, T1Out> primaryFunc, 
-        Func<T2, T2Out> secondaryFunc) 
-        => new Either<T1Out, T2Out>(primaryFunc(either.First), secondaryFunc(either.Second));
 
-    public static void Match<TLeft, TRight>(this Either<TLeft, TRight> either,
-        Action<TLeft> leftMatch,
-        Action<TRight> rightMatch) {
+    public static Either<T1Out, T2> BindFirst<T1, T2, T1Out>(this Either<T1, T2> either, Func<T1, T1Out> primaryFunc) {
+        if (either.HasFirst) return new Either<T1Out, T2>(primaryFunc(either.First), default);
+        else return new Either<T1Out, T2>(default, either.Second);
+    }
+    public static Either<T1, T2Out> BindSecond<T1, T2, T2Out>(this Either<T1, T2> either, Func<T2, T2Out> primaryFunc) {
+        if (either.HasSecond) return new Either<T1, T2Out>(default, primaryFunc(either.Second));
+        else return new Either<T1, T2Out>(either.First, default);
+    }
+
+    public static Either<T1Out, T2Out> Bind<T1, T2, T1Out, T2Out>(this Either<T1, T2> either, 
+        Func<T1, T1Out> primaryFunc, 
+        Func<T2, T2Out> secondaryFunc) {
+            if(either.HasFirst) return new Either<T1Out, T2Out>(primaryFunc(either.First), default);
+            else return new Either<T1Out, T2Out>(default, secondaryFunc(either.Second));
+    }
+
+    public static Either<T1,T2> MatchFirst<T1, T2>(this Either<T1, T2> either, Action<T1> action) {
+        if(either.HasFirst) action(either.First);
+        return either;
+    }
+    public static Either<T1,T2> MatchSecond<T1, T2>(this Either<T1, T2> either, Action<T2> action) {
+        if(either.HasSecond) action(either.Second);
+        return either;
+    }
+    public static Either<T1, T2> Match<T1, T2>(this Either<T1, T2> either, Action<T1> leftMatch, Action<T2> rightMatch) {
         if(either.HasFirst) leftMatch(either.First);
-        else rightMatch(either.Second);
+        else if( either.HasSecond) rightMatch(either.Second);
+        return either;
     }
 }
