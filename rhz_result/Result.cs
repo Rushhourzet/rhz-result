@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Data.SqlTypes;
 using System.Runtime.CompilerServices;
-
 namespace rhz.Result;
 
 public readonly struct Result<TValue> : IResult<TValue> {
@@ -28,8 +27,8 @@ public readonly struct Result<TValue> : IResult<TValue> {
         this.errorState = true;
     }
 
-    public static implicit operator TValue(Result<TValue> result) => result.Value;
-    public static implicit operator Exception(Result<TValue> result) => result.Error;
+    public static explicit operator TValue(Result<TValue> result) => result.Value;
+    public static explicit operator Exception(Result<TValue> result) => result.Error;
     public static implicit operator Result<TValue>(TValue value) =>
         value is not null ? new Result<TValue>(value) : new Result<TValue>(new ArgumentNullException("Value cannot be null on creation of Result"));
     public static implicit operator Result<TValue>(Exception exception) =>

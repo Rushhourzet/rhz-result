@@ -1,15 +1,22 @@
 ﻿using example.examples;
 using Microsoft.Extensions.Logging;
 using rhz.Result;
+using rhz.Fluent;
 
 internal class Program {
     internal static readonly IResult<Person> okResult = Result.Ok(new Person("Harold"));
     internal static readonly IResult<Person> errorResult = Result.Err<Person>("error");
     public static void Main(string[] args) {
 
-        Instantiation.Example();
+        string companyName = "Acme";
+        Either<Person, Business> name = new(
+            companyName.Contains("Harold") ? new Person(companyName) : null,
+            companyName.Contains("Acme") ? new Business(companyName) : null);
+        name.Match(
+            person => Console.WriteLine(person.name),
+            business => Console.WriteLine(business.name));
 
-        IResultIEnumerableInstantiation.Example();
+        Instantiation.Example();
 
         SomeAndNone.Example();
 
